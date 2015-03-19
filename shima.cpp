@@ -1,10 +1,10 @@
 /*
- * H5 Program
- * To Understand How to Declare and Manipulate a Collections of Objects Using an Array, Enumerators, and Structures.
+ * H6 Program
+ * Re-doing of Homework 5 for Understanding Basic Concepts about Software Design.
  * By Shima Azizzadeh-Roodpish
- * 25 Feb 2015
+ * 18 March 2015
  * No Copyright
- * Github account: https://github.com/Shima63/H5.git
+ * Github account: https://github.com/Shima63/H6.git
  */
  
 // External Libraries
@@ -27,6 +27,9 @@ int flag;
 
 // Defining Struct
 
+//struct header {
+//};
+
 struct entry {
     string network_code;
     string station_code;
@@ -37,14 +40,30 @@ struct entry {
     
 // Defining Enumerators
     
-// start the enumeration from 1 to facilitate printing...
-// since months are numbered starting at 1
+// Start the Enumeration from 1 to Facilitate Printing...
+// Since Months Are Numbered Starting at 1
 
 enum months { 
     January = 1, February, March, April, May, June,
     July, August, September, October, November, December
 }; 
- 
+
+enum magnitude_type {
+    ML, Ms, Mb, Mw
+};
+
+enum network_code {
+    CE, CI, FA, NP, WR
+};
+
+enum band_type {
+    longperiod, shortperiod, broadband
+};
+
+enum instrument_type {
+    highgain, lowgain, accelerometer
+};
+     
 // ********************************************************************************************************************
 
 // Function Prototype
@@ -60,15 +79,20 @@ void check_time_zone ( string, ofstream & );
 void check_magnitude_type ( string, ofstream & );
 void check_magnitude_size ( float, ofstream & );
 void produce_signal ( ofstream &, string, string, string, string, string, string );
-string uppercase ( string );
-string monthstring ( months );
-string change_band ( string );
-string change_instrument ( string );
 void check_network_code ( int, string, ofstream & );
 void check_station_code ( int, string, ofstream & );
 void check_type_of_band ( int, string , ofstream & );
-void check_type_of_instrument ( int, string, ofstream & );        
-
+void check_type_of_instrument ( int, string, ofstream & );
+string monthstring ( months );
+string uppercase ( string );
+string magnitude_type_to_string ( magnitude_type );
+magnitude_type string_to_magnitude_type ( string );
+string network_code_to_string ( network_code );
+network_code string_to_network_code ( string );
+string band_type_to_string ( band_type );
+band_type string_to_band_type ( string );
+string instrument_type_to_string ( instrument_type );
+instrument_type string_to_instrument_type ( string );
 
 // ********************************************************************************************************************
 
@@ -79,7 +103,7 @@ int main () {
 
     // Defining Variables' Type
     
-    string Event_ID, date, time, time_zone, earthquake_name, earthquake_name_continue, magnitude_type, day, month, year;
+    string Event_ID, date, time, time_zone, earthquake_name, earthquake_name_continue, magnitude_type_string, day, month, year;
     string temp, temp1, temp2, temp3;
     int num_of_valid_entries = 0, num_of_input = 0, value = 0, num_of_signal = 0;
     double longitude, latitude, depth;
@@ -114,12 +138,11 @@ int main () {
     
     // Finding and Checking  Validity of the Month
     
-    temp =  temp.append ( date.begin() + 3 ,date.begin() + 5 );
+    temp =  temp.append ( date.begin(), date.begin() + 2 );
     value = atoi(temp.c_str());
     check_month ( value, logfile );
     month_name = months(value);
     month = monthstring ( month_name );
-
     
     inputfile >> time;
     check_time ( time, logfile );
@@ -137,8 +160,8 @@ int main () {
     
     // Magnitude Information
     
-    inputfile >> magnitude_type;
-    check_magnitude_type ( magnitude_type, logfile );
+    inputfile >> magnitude_type_string;
+    check_magnitude_type ( magnitude_type_string, logfile );
     inputfile >> magnitude_size;
     check_magnitude_size ( magnitude_size, logfile );
 
@@ -150,9 +173,9 @@ int main () {
     
     ofstream outputfile;
     open_file ( outputfilename, outputfile );
-
-    outputfile << "# " << day.append( date.begin(),date.begin() + 2 ) << " " << month << " " << year.append( date.begin() + 6,date.end() );
-    outputfile << " " << time << " " <<  time_zone << " " << magnitude_type << " " << magnitude_size << " " << earthquake_name << " ";
+    
+    outputfile << "# " << day.append( date.begin() + 3,date.begin() + 5 ) << " " << month << " " << year.append( date.begin() + 6,date.end() );
+    outputfile << " " << time << " " <<  time_zone << " " << magnitude_type_to_string ( string_to_magnitude_type ( magnitude_type_string ) ) << " " << magnitude_size << " " << earthquake_name << " ";
     outputfile << "[" << Event_ID << "]  (" << longitude << ", " << latitude << ", " << depth << ")" << endl;
 
     // Reading Entries
@@ -183,7 +206,8 @@ int main () {
         else {
             temp1 = entry_temp.orientation[0];
             if ( ( temp1 != "1" ) && ( temp1 != "2" ) && ( temp1 != "3" ) ) {
-                if ( ( uppercase ( temp1 ) != uppercase ( "N" ) ) && ( uppercase ( temp1 ) != uppercase ( "E" ) ) && ( uppercase ( temp1 ) != uppercase ( "Z" ) ) ) { 
+                if ( ( uppercase ( temp1 ) != uppercase ( "N" ) ) && ( uppercase ( temp1 ) != uppercase ( "E" ) ) 
+                && ( uppercase ( temp1 ) != uppercase ( "Z" ) ) ) { 
                     flag = 5;
                 }
                 else {
@@ -260,15 +284,12 @@ int main () {
     
     outputfile << ( num_of_signal ) << endl;
     for (int i = 0; i < ( num_of_signal ); i++) {
-    
-        // Changing Names to Abbreviations
-    
-        entry_array[i].type_of_band = change_band ( entry_array[i].type_of_band );
-        entry_array[i].type_of_instrument = change_instrument ( entry_array[i].type_of_instrument );
-    
+        
         // Producing Signal
         
-        produce_signal ( outputfile, Event_ID, entry_array[i].network_code, entry_array[i].station_code, entry_array[i].type_of_band, entry_array[i].type_of_instrument, entry_array[i].orientation );    
+        produce_signal ( outputfile, Event_ID, network_code_to_string ( string_to_network_code ( entry_array[i].network_code ) ), 
+        entry_array[i].station_code, band_type_to_string ( string_to_band_type ( entry_array[i].type_of_band ) ), 
+        instrument_type_to_string ( string_to_instrument_type ( entry_array[i].type_of_instrument ) ), entry_array[i].orientation );    
     }
     
     return 0;
@@ -292,13 +313,13 @@ void open_input ( ifstream & ifs ) {
     // Check to Make Sure the File Is Opened Properly
 
     if ( !ifs.is_open() ) {
-    	message = "Input file does not exist!";
-    	
+        message = "Input file does not exist!";
+        
         // Making log file When There Is Error
 
-	    ofstream logfile;
-	    open_file ( logfilename, logfile );
-	    print_file ( message, logfile );
+        ofstream logfile;
+        open_file ( logfilename, logfile );
+        print_file ( message, logfile );
         exit (EXIT_FAILURE);
     }   
     return;
@@ -313,11 +334,11 @@ void open_file ( string filename, ofstream & ofs ) {
             
         // Making log file When There Is Error
 
-	    ofstream logfile;
-	    open_file ( logfilename, logfile );
-	    print_file ( message, logfile );
+        ofstream logfile;
+        open_file ( logfilename, logfile );
+        print_file ( message, logfile );
         exit (EXIT_FAILURE);
-    }   
+    }
     return;
 } 
 
@@ -393,7 +414,8 @@ void check_time ( string time, ofstream & logfile ) {
             print_file ( message, logfile );
             exit (EXIT_FAILURE);
         }  
-        if ( ( !isdigit ( time[6] ) ) || ( !isdigit ( time[7] ) ) || ( !isdigit ( time[9] ) ) || ( !isdigit ( time[10] ) ) || ( !isdigit ( time[11] ) ) ) {
+        if ( ( !isdigit ( time[6] ) ) || ( !isdigit ( time[7] ) ) || ( !isdigit ( time[9] ) ) 
+        || ( !isdigit ( time[10] ) ) || ( !isdigit ( time[11] ) ) ) {
             print_file ( message, logfile );
             exit (EXIT_FAILURE);
         }
@@ -448,8 +470,8 @@ string uppercase ( string s ) {
 
 // Function to Convert from "month" to a String...
 
-string monthstring (months month) {
-    switch (month) {
+string monthstring ( months month ) {
+    switch ( month ) {
         case January:
             return "January";
         case February:
@@ -477,41 +499,12 @@ string monthstring (months month) {
         default:
             return "ILLEGAL";
     }
-}
-
-// Function to Convert Name to Abbreviation for Band
-
-string change_band ( string name ) {
-    if ( uppercase ( name ) == uppercase ( "Long-period" ) ) {
-        name = "L";
-    }    
-    if ( uppercase ( name) == uppercase ( "Short-period" ) ) {
-        name = "B";
-    }
-    if ( uppercase ( name ) == uppercase ( "broadband" ) ) {
-        name = "H";
-    }
-    return name;   
-}
-
-// Function to Convert Name to Abbreviation for Instrument
-
-string change_instrument ( string name ) {
-    if ( uppercase ( name ) == uppercase ( "High-Gain" ) ) {
-        name = "H";
-    }    
-    if ( uppercase ( name ) == uppercase ( "Low-Gain" ) ) {
-        name = "L";
-    }
-    if ( uppercase ( name ) == uppercase ( "Accelerometer" ) ) {
-        name = "N";
-    }
-    return name;
-}     
+}    
 
 // Function to Produce Signal Name as an String
         
-void produce_signal ( ofstream & outputfile, string Event_ID, string network_code, string station_code, string type_of_band, string type_of_instrument, string orientation ) { 
+void produce_signal ( ofstream & outputfile, string Event_ID, string network_code, string station_code, 
+string type_of_band, string type_of_instrument, string orientation ) { 
     string temp= "";
     temp.append(Event_ID);
     temp.append(".");
@@ -526,11 +519,11 @@ void produce_signal ( ofstream & outputfile, string Event_ID, string network_cod
     return;
 }       
 
-
 // Function to Check Network Code
 
 void check_network_code ( int num_of_input, string code, ofstream & logfile ) {
-    if ( ( code.length() != 2 ) || ( ( code != "CE" ) && ( code != "CI" ) && ( code != "FA" ) && ( code != "NP" ) && ( code != "WR" ) ) ) {
+    if ( ( code.length() != 2 ) || ( ( code != "CE" ) && ( code != "CI" ) && ( code != "FA" ) 
+    && ( code != "NP" ) && ( code != "WR" ) ) ) {
         flag = 1;
     }
     if ( flag == 1) {
@@ -550,7 +543,8 @@ void check_station_code ( int num_of_input, string code, ofstream & logfile ) {
             flag = 2;
         }
         else {
-            if ( ( !isdigit ( code[0] ) ) || ( !isdigit ( code[1] ) ) || ( !isdigit ( code[2] ) ) || ( !isdigit ( code[3] ) ) || ( !isdigit ( code[4] ) ) ) {
+            if ( ( !isdigit ( code[0] ) ) || ( !isdigit ( code[1] ) ) || ( !isdigit ( code[2] ) ) 
+            || ( !isdigit ( code[3] ) ) || ( !isdigit ( code[4] ) ) ) {
                 flag = 2;
             }    
         }
@@ -577,7 +571,8 @@ void check_station_code ( int num_of_input, string code, ofstream & logfile ) {
 // Function to Check Type of Band
 
 void check_type_of_band ( int num_of_input, string band, ofstream & logfile ) {
-    if ( ( uppercase ( band ) != uppercase ( "Long-period" ) ) && ( uppercase ( band ) != uppercase ( "Short-period" ) ) && ( uppercase ( band ) != uppercase ( "Broadband" ) ) ) {
+    if ( ( uppercase ( band ) != uppercase ( "Long-period" ) ) && ( uppercase ( band ) != uppercase ( "Short-period" ) ) 
+    && ( uppercase ( band ) != uppercase ( "Broadband" ) ) ) {
         flag = 3;
     }
     if ( flag == 3 ) {
@@ -590,7 +585,8 @@ void check_type_of_band ( int num_of_input, string band, ofstream & logfile ) {
 }    
        
 void check_type_of_instrument ( int num_of_input, string instrument, ofstream & logfile ) {        
-    if ( ( uppercase ( instrument ) != uppercase ( "High-Gain" ) ) && ( uppercase ( instrument ) != uppercase ( "Low-Gain" ) ) && ( uppercase ( instrument ) != uppercase ( "Accelerometer" ) ) ) {
+    if ( ( uppercase ( instrument ) != uppercase ( "High-Gain" ) ) && ( uppercase ( instrument ) != uppercase ( "Low-Gain" ) ) 
+    && ( uppercase ( instrument ) != uppercase ( "Accelerometer" ) ) ) {
         flag = 4;
     }
     if ( flag == 4 ) {
@@ -599,5 +595,139 @@ void check_type_of_instrument ( int num_of_input, string instrument, ofstream & 
         print_file ( " ignored. Invalid type of instrument. ", logfile ); 
         print_file ( "\n", logfile );
     }
-}    
-            
+} 
+   
+// Function to Change Magnitude Type to String
+
+string magnitude_type_to_string ( magnitude_type M ) {
+    switch ( M ) {
+        case ML:
+            return "ML";
+        case Ms:
+            return "Ms";
+        case Mb:
+            return "Mb";
+        case Mw:
+            return "Mw";
+    }
+    exit(EXIT_FAILURE);
+}
+
+// Function to Change String to Magnitude Type
+
+magnitude_type string_to_magnitude_type ( string NN ) {
+    NN = uppercase ( NN );
+    if ( NN == "ML" ) {
+        return ML;
+    }    
+    if ( NN == "MS" ) {
+        return Ms;
+    }
+    if ( NN == "MB" ) {
+        return Mb;
+    }
+    if ( NN == "MW" ) {
+        return Mw;
+    }
+    exit(EXIT_FAILURE);
+}
+
+// Function to Change Network Code to String
+
+string network_code_to_string ( network_code MM ) {
+    switch ( MM ) {
+        case CE:
+            return "CE";
+        case CI:
+            return "CI";
+        case FA:
+            return "FA";
+        case NP:
+            return "NP";
+        case WR:
+            return "WR";
+    }
+    exit(EXIT_FAILURE);
+}
+
+// Function to Change String to Network Code
+
+network_code string_to_network_code (string NN) {
+    NN = uppercase (NN);
+    if ( NN == "CE" ) {
+        return CE;
+    }    
+    if ( NN == "CI" ) {
+        return CI;
+    }
+    if ( NN == "FA" ) {
+        return FA;
+    }
+    if ( NN == "NP" ) {
+        return NP;
+    }
+    if ( NN == "WR" ) {
+        return WR;
+    }
+    exit(EXIT_FAILURE);
+}
+
+// Function to Change Band Type to String
+
+string band_type_to_string ( band_type MMM ) {
+    switch ( MMM ) {
+        case longperiod:
+            return "L";
+        case shortperiod:
+            return "B";
+        case broadband:
+            return "H";
+    }
+    exit(EXIT_FAILURE);
+}
+
+// Function to Change String to Band Type
+
+band_type string_to_band_type (string NN) {
+    NN = uppercase (NN);
+    if ( NN == uppercase ( "Long-Period" ) ) {
+        return longperiod;
+    }    
+    if ( NN == uppercase ( "Short-Period" ) ) {
+        return shortperiod;
+    }
+    if ( NN == uppercase ( "Broadband" ) ) {
+        return broadband;
+    }
+    exit(EXIT_FAILURE);
+}
+
+// Function to Change Instrument Type to String
+
+string instrument_type_to_string ( instrument_type MMMM ) {
+    switch ( MMMM ) {
+        case highgain:
+            return "H";
+        case lowgain:
+            return "L";
+        case accelerometer:
+            return "N";
+    }
+    exit(EXIT_FAILURE);
+}
+
+// Function to Change String to Instrument Type
+
+instrument_type string_to_instrument_type (string NN) {
+    NN = uppercase (NN);
+    if ( NN == uppercase ( "High-Gain" ) ) {
+        return highgain;
+    }    
+    if ( NN == uppercase ( "Low-Gain" ) ) {
+        return lowgain;
+    }
+    if ( NN == uppercase ( "Accelerometer" ) ) {
+        return accelerometer;
+    }
+    exit(EXIT_FAILURE);
+}           
