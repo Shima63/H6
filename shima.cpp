@@ -116,7 +116,7 @@ int main () {
     // Defining Variables' Type
     
     string earthquake_name_continue, day, month, year;
-    string temp, temp1, temp2, temp3;
+    string tempa, tempb, tempc, temp1, temp2, temp3;
     int num_of_valid_entries = 0, num_of_input = 0, value = 0, num_of_signal = 0;
     months month_name;
    
@@ -149,22 +149,22 @@ int main () {
     
     // Finding and Checking  Validity of the Month
     
-    temp =  temp.append ( header.date.begin (), header.date.begin () + 2 );
-    value = atoi(temp.c_str());
+    tempa =  tempa.append ( header.date.begin (), header.date.begin () + 2 );
+    value = atoi(tempa.c_str());
     check_month ( value, logfile );
     month_name = months(value);
     month = monthstring ( month_name );
-    
+
     // Finding and Checking  Validity of the day
   
-    temp =  temp.append ( header.date.begin () + 3, header.date.begin () + 5 );
-    value = atoi(temp.c_str());
+    tempb =  tempb.append ( header.date.begin () + 4, header.date.begin () + 5 );
+    value = atoi(tempb.c_str());
     check_day ( value, logfile );
     
     // Finding and Checking  Validity of the year
   
-    temp =  temp.append ( header.date.begin () + 6, header.date.end () );
-    value = atoi(temp.c_str());
+    tempc =  tempc.append ( header.date.begin () + 6, header.date.end () );
+    value = atoi(tempc.c_str());
     check_year ( value, logfile );
         
     inputfile >> header.time;
@@ -466,7 +466,42 @@ void check_time ( string time, ofstream & logfile ) {
             print_file ( message, logfile );
             exit (EXIT_FAILURE);
         }
+        
+        // Defining Temporary Variables
+        
+        string temp0, temp1, temp2;
+        double value;
+        
+        // Finding and Checking  Validity of the Hour
+  
+        temp0 =  temp0.append ( time.begin (), time.begin () + 2 );
+        value = atoi(temp0.c_str());
+        if ( ( value < 0 ) || ( value > 23 ) ) {
+            message = "Hour is not right.";
+            print_file ( message, logfile );
+            exit (EXIT_FAILURE);
         }
+        
+        // Finding and Checking  Validity of the Minute
+  
+        temp1 =  temp1.append ( time.begin () + 3, time.begin () + 5 );
+        value = atoi(temp1.c_str());
+        if ( ( value < 0 ) || ( value > 59 ) ) {
+            message = "Minute is not right.";
+            print_file ( message, logfile );
+            exit (EXIT_FAILURE);
+        }
+        
+        // Finding and Checking  Validity of the Second
+  
+        temp2 =  temp2.append ( time.begin () + 6, time.begin () + 8 );
+        value = atoi(temp2.c_str());
+        if ( ( value < 0 ) || ( value > 59 ) ) {
+            message = "Second is not right.";
+            print_file ( message, logfile );
+            exit (EXIT_FAILURE);
+        }                    
+    }
     }
     return;
 }    
