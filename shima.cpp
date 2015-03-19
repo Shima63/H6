@@ -84,6 +84,8 @@ void print_file ( string, ofstream & );
 void print_file ( int, ofstream & );
 void check_date ( string, ofstream & );
 void check_month ( int, ofstream & );
+void check_day ( int, ofstream & );
+void check_year ( int, ofstream & );
 void check_time ( string, ofstream & );
 void check_time_zone ( string, ofstream & );
 void check_magnitude_type ( string, ofstream & );
@@ -153,6 +155,18 @@ int main () {
     month_name = months(value);
     month = monthstring ( month_name );
     
+    // Finding and Checking  Validity of the day
+  
+    temp =  temp.append ( header.date.begin () + 3, header.date.begin () + 5 );
+    value = atoi(temp.c_str());
+    check_day ( value, logfile );
+    
+    // Finding and Checking  Validity of the year
+  
+    temp =  temp.append ( header.date.begin () + 6, header.date.end () );
+    value = atoi(temp.c_str());
+    check_year ( value, logfile );
+        
     inputfile >> header.time;
     check_time ( header.time, logfile );
     inputfile >> header.time_zone;
@@ -405,7 +419,29 @@ void check_month ( int month, ofstream & logfile ) {
         exit (EXIT_FAILURE);
     }
     return;
-}    
+}
+
+// This "check_day" function checks the validity of day entry.
+
+void check_day ( int day, ofstream & logfile ) {
+    if ( ( day > 31 ) || ( day < 1 ) ) {
+        message = "Day is not right.";
+        print_file ( message, logfile );
+        exit (EXIT_FAILURE);
+    }
+    return;
+}
+
+// This "check_year" function checks the validity of year entry.
+
+void check_year ( int year, ofstream & logfile ) {
+    if ( year < 0 ) {
+        message = "Year is not right.";
+        print_file ( message, logfile );
+        exit (EXIT_FAILURE);
+    }
+    return;
+}
 
 // This "check_time" function checks the validity of time entry.
 
