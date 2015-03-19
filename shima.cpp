@@ -27,8 +27,18 @@ int flag;
 
 // Defining Struct
 
-//struct header {
-//};
+struct earthquake {
+    string Event_ID;
+    string date;
+    string time;
+    string time_zone;
+    string earthquake_name;
+    string longitude;
+    string latitude;
+    string depth;
+    string magnitude_type_string;
+    float magnitude_size;
+};
 
 struct entry {
     string network_code;
@@ -103,15 +113,14 @@ int main () {
 
     // Defining Variables' Type
     
-    string Event_ID, date, time, time_zone, earthquake_name, earthquake_name_continue, magnitude_type_string, day, month, year;
+    string earthquake_name_continue, day, month, year;
     string temp, temp1, temp2, temp3;
     int num_of_valid_entries = 0, num_of_input = 0, value = 0, num_of_signal = 0;
-    double longitude, latitude, depth;
-    float magnitude_size;
     months month_name;
    
     entry entry_array [ 300 ];
     entry entry_temp;
+    earthquake header;
     
     // Prompt User for Input File Name.
 
@@ -132,38 +141,38 @@ int main () {
     
     // Reading and Checking Header
         
-    inputfile >> Event_ID;
-    inputfile >> date;   
-    check_date ( date, logfile );
+    inputfile >> header.Event_ID;
+    inputfile >> header.date;   
+    check_date ( header.date, logfile );
     
     // Finding and Checking  Validity of the Month
     
-    temp =  temp.append ( date.begin(), date.begin() + 2 );
+    temp =  temp.append ( header.date.begin (), header.date.begin () + 2 );
     value = atoi(temp.c_str());
     check_month ( value, logfile );
     month_name = months(value);
     month = monthstring ( month_name );
     
-    inputfile >> time;
-    check_time ( time, logfile );
-    inputfile >> time_zone;
-    check_time_zone ( time_zone, logfile );
-    inputfile >> earthquake_name;
+    inputfile >> header.time;
+    check_time ( header.time, logfile );
+    inputfile >> header.time_zone;
+    check_time_zone ( header.time_zone, logfile );
+    inputfile >> header.earthquake_name;
     getline(inputfile, earthquake_name_continue);
-    earthquake_name.append ( earthquake_name_continue ); 
+    header.earthquake_name.append ( earthquake_name_continue ); 
     
     // Epicenter Location
     
-    inputfile >> longitude;
-    inputfile >> latitude; 
-    inputfile >> depth;
+    inputfile >> header.longitude;
+    inputfile >> header.latitude; 
+    inputfile >> header.depth;
     
     // Magnitude Information
     
-    inputfile >> magnitude_type_string;
-    check_magnitude_type ( magnitude_type_string, logfile );
-    inputfile >> magnitude_size;
-    check_magnitude_size ( magnitude_size, logfile );
+    inputfile >> header.magnitude_type_string;
+    check_magnitude_type ( header.magnitude_type_string, logfile );
+    inputfile >> header.magnitude_size;
+    check_magnitude_size ( header.magnitude_size, logfile );
 
     message = "Header read correctly!";
     print_file ( message, logfile );
@@ -174,9 +183,11 @@ int main () {
     ofstream outputfile;
     open_file ( outputfilename, outputfile );
     
-    outputfile << "# " << day.append( date.begin() + 3,date.begin() + 5 ) << " " << month << " " << year.append( date.begin() + 6,date.end() );
-    outputfile << " " << time << " " <<  time_zone << " " << magnitude_type_to_string ( string_to_magnitude_type ( magnitude_type_string ) ) << " " << magnitude_size << " " << earthquake_name << " ";
-    outputfile << "[" << Event_ID << "]  (" << longitude << ", " << latitude << ", " << depth << ")" << endl;
+    outputfile << "# " << day.append( header.date.begin () + 3, header.date.begin () + 5 ) << " " << month << " " 
+    << year.append( header.date.begin () + 6, header.date.end () );
+    outputfile << " " << header.time << " " <<  header.time_zone << " " << magnitude_type_to_string ( string_to_magnitude_type ( header.magnitude_type_string ) ) 
+    << " " << header.magnitude_size << " " << header.earthquake_name << " ";
+    outputfile << "[" << header.Event_ID << "]  (" << header.longitude << ", " << header.latitude << ", " << header.depth << ")" << endl;
 
     // Reading Entries
 
@@ -287,7 +298,7 @@ int main () {
         
         // Producing Signal
         
-        produce_signal ( outputfile, Event_ID, network_code_to_string ( string_to_network_code ( entry_array[i].network_code ) ), 
+        produce_signal ( outputfile, header.Event_ID, network_code_to_string ( string_to_network_code ( entry_array[i].network_code ) ), 
         entry_array[i].station_code, band_type_to_string ( string_to_band_type ( entry_array[i].type_of_band ) ), 
         instrument_type_to_string ( string_to_instrument_type ( entry_array[i].type_of_instrument ) ), entry_array[i].orientation );    
     }
@@ -506,15 +517,15 @@ string monthstring ( months month ) {
 void produce_signal ( ofstream & outputfile, string Event_ID, string network_code, string station_code, 
 string type_of_band, string type_of_instrument, string orientation ) { 
     string temp= "";
-    temp.append(Event_ID);
-    temp.append(".");
-    temp.append(network_code);
-    temp.append(".");
-    temp.append(station_code);
-    temp.append(".");
-    temp.append(type_of_band);
-    temp.append(type_of_instrument);
-    temp.append(orientation);
+    temp.append( Event_ID );
+    temp.append( "." );
+    temp.append( network_code );
+    temp.append( "." );
+    temp.append( station_code );
+    temp.append( "." );
+    temp.append( type_of_band );
+    temp.append( type_of_instrument );
+    temp.append( orientation );
     outputfile << temp << endl;
     return;
 }       
