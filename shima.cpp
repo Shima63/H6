@@ -74,6 +74,11 @@ enum instrument_type {
     highgain, lowgain, accelerometer
 };
      
+entry entry_array [ 300 ];
+entry entry_temp;
+earthquake header;
+
+
 // ********************************************************************************************************************
 
 // Function Prototype
@@ -106,6 +111,30 @@ band_type string_to_band_type ( string );
 string instrument_type_to_string ( instrument_type );
 instrument_type string_to_instrument_type ( string );
 
+// Set and Get Functions
+
+void set_Event_ID ( string, earthquake & );
+string get_Event_ID ();
+string set_date ( string, earthquake &, ofstream & );
+string get_date ();
+void set_time ( string, earthquake &, ofstream & );
+string get_time ();
+string get_date ();
+void set_time_zone ( string, earthquake &, ofstream & );
+string get_time_zone ();
+void set_earthquake_name ( string, earthquake & );
+string get_earthquake_name ();
+void set_latitude ( string, earthquake & );
+string get_latitude ();
+void set_longitude ( string, earthquake & );
+string get_longitude ();
+void set_depth ( string, earthquake & );
+string get_depth ();
+void set_magnitude_type_string ( string, earthquake &, ofstream & );
+string get_magnitude_type_string ();
+void set_magnitude_size ( float, earthquake &, ofstream & );
+float get_magnitude_size ();
+
 // ********************************************************************************************************************
 
 // Main Program.
@@ -115,14 +144,11 @@ int main () {
 
     // Defining Variables' Type
     
+    string Event_ID, date, time, time_zone, earthquake_name, latitude, longitude, depth, magnitude_type_string;
     string earthquake_name_continue, day, month, year;
-    string tempa, tempb, tempc, temp1, temp2, temp3;
-    int num_of_valid_entries = 0, num_of_input = 0, value = 0, num_of_signal = 0;
-    months month_name;
-   
-    entry entry_array [ 300 ];
-    entry entry_temp;
-    earthquake header;
+    string temp1, temp2, temp3;
+    int num_of_valid_entries = 0, num_of_input = 0, num_of_signal = 0;
+    float magnitude_size;
     
     // Prompt User for Input File Name.
 
@@ -143,50 +169,36 @@ int main () {
     
     // Reading and Checking Header
         
-    inputfile >> header.Event_ID;
-    inputfile >> header.date;   
-    check_date ( header.date, logfile );
-    
-    // Finding and Checking  Validity of the Month
-    
-    tempa =  tempa.append ( header.date.begin (), header.date.begin () + 2 );
-    value = atoi(tempa.c_str());
-    check_month ( value, logfile );
-    month_name = months(value);
-    month = monthstring ( month_name );
-
-    // Finding and Checking  Validity of the day
-  
-    tempb =  tempb.append ( header.date.begin () + 4, header.date.begin () + 5 );
-    value = atoi(tempb.c_str());
-    check_day ( value, logfile );
-    
-    // Finding and Checking  Validity of the year
-  
-    tempc =  tempc.append ( header.date.begin () + 6, header.date.end () );
-    value = atoi(tempc.c_str());
-    check_year ( value, logfile );
-        
-    inputfile >> header.time;
-    check_time ( header.time, logfile );
-    inputfile >> header.time_zone;
-    check_time_zone ( header.time_zone, logfile );
-    inputfile >> header.earthquake_name;
+    inputfile >> Event_ID;
+    set_Event_ID ( Event_ID, header );
+    inputfile >> date;
+    month = set_date ( date, header, logfile );
+    date = get_date ();
+            
+    inputfile >> time;
+    set_time ( time, header, logfile );
+    inputfile >> time_zone;
+    set_time_zone ( time_zone, header, logfile );    
+    inputfile >> earthquake_name;
     getline(inputfile, earthquake_name_continue);
-    header.earthquake_name.append ( earthquake_name_continue ); 
+    earthquake_name.append ( earthquake_name_continue ); 
+    set_earthquake_name ( earthquake_name, header);
     
     // Epicenter Location
     
-    inputfile >> header.longitude;
-    inputfile >> header.latitude; 
-    inputfile >> header.depth;
-    
+    inputfile >> longitude;
+    set_longitude ( longitude, header);
+    inputfile >> latitude;
+    set_latitude ( latitude, header);
+    inputfile >> depth;
+    set_depth ( depth, header);
+        
     // Magnitude Information
     
-    inputfile >> header.magnitude_type_string;
-    check_magnitude_type ( header.magnitude_type_string, logfile );
-    inputfile >> header.magnitude_size;
-    check_magnitude_size ( header.magnitude_size, logfile );
+    inputfile >> magnitude_type_string;
+    set_magnitude_type_string ( magnitude_type_string, header, logfile );
+    inputfile >> magnitude_size;
+    set_magnitude_size ( magnitude_size, header, logfile );
 
     message = "Header read correctly!";
     print_file ( message, logfile );
@@ -197,11 +209,11 @@ int main () {
     ofstream outputfile;
     open_file ( outputfilename, outputfile );
     
-    outputfile << "# " << day.append( header.date.begin () + 3, header.date.begin () + 5 ) << " " << month << " " 
-    << year.append( header.date.begin () + 6, header.date.end () );
-    outputfile << " " << header.time << " " <<  header.time_zone << " " << magnitude_type_to_string ( string_to_magnitude_type ( header.magnitude_type_string ) ) 
-    << " " << header.magnitude_size << " " << header.earthquake_name << " ";
-    outputfile << "[" << header.Event_ID << "]  (" << header.longitude << ", " << header.latitude << ", " << header.depth << ")" << endl;
+    outputfile << "# " << day.append( date.begin () + 3, date.begin () + 5 ) << " " << month << " " 
+    << year.append( date.begin () + 6, date.end () );
+    outputfile << " " << get_time () << " " <<  get_time_zone () << " " << magnitude_type_to_string ( string_to_magnitude_type ( get_magnitude_type_string () ) ) 
+    << " " << get_magnitude_size () << " " << get_earthquake_name () << " ";
+    outputfile << "[" << get_Event_ID () << "]  (" << get_longitude () << ", " << get_latitude () << ", " << get_depth () << ")" << endl;
 
     // Reading Entries
 
@@ -312,7 +324,7 @@ int main () {
         
         // Producing Signal
         
-        produce_signal ( outputfile, header.Event_ID, network_code_to_string ( string_to_network_code ( entry_array[i].network_code ) ), 
+        produce_signal ( outputfile, get_Event_ID (), network_code_to_string ( string_to_network_code ( entry_array[i].network_code ) ), 
         entry_array[i].station_code, band_type_to_string ( string_to_band_type ( entry_array[i].type_of_band ) ), 
         instrument_type_to_string ( string_to_instrument_type ( entry_array[i].type_of_instrument ) ), entry_array[i].orientation );    
     }
@@ -812,4 +824,136 @@ instrument_type string_to_instrument_type (string NN) {
         return accelerometer;
     }
     exit(EXIT_FAILURE);
-}           
+}
+
+// ***********************************************************************************
+// Set and Get Functions
+
+// Set and Get Functions For Earthquake Struct
+
+void set_Event_ID ( string s, earthquake & header ) {
+    header.Event_ID = s;
+    return;
+}
+
+string get_Event_ID () {
+    return header.Event_ID;
+}      
+
+string set_date ( string s, earthquake & header, ofstream & logfile ) {
+
+    // Variables
+    
+    int value;
+    string tempa, tempb, tempc, month;
+    months month_name;
+    
+    header.date = s;
+    check_date ( header.date, logfile );
+    
+    // Finding and Checking  Validity of the Month
+    
+    tempa =  tempa.append ( header.date.begin (), header.date.begin () + 2 );
+    value = atoi(tempa.c_str());
+    check_month ( value, logfile );
+    month_name = months(value);
+    month = monthstring ( month_name );
+    cout << month <<endl;
+
+    // Finding and Checking  Validity of the day
+  
+    tempb =  tempb.append ( header.date.begin () + 4, header.date.begin () + 5 );
+    value = atoi(tempb.c_str());
+    check_day ( value, logfile );
+    
+    // Finding and Checking  Validity of the year
+  
+    tempc =  tempc.append ( header.date.begin () + 6, header.date.end () );
+    value = atoi(tempc.c_str());
+    check_year ( value, logfile );
+    
+    return month;
+}
+
+string get_date () {
+    return header.date;
+}
+
+void set_time ( string s, earthquake & header, ofstream & logfile ) {
+    header.time = s;
+    check_time ( header.time, logfile );
+    return;
+}
+
+string get_time () {
+    return header.time;
+}
+
+void set_time_zone ( string s, earthquake & header, ofstream & logfile ) {
+    header.time_zone = s;
+    check_time_zone ( header.time_zone, logfile );
+    return;
+}
+
+string get_time_zone () {
+    return header.time_zone;
+}
+
+void set_earthquake_name ( string s, earthquake & header ) {
+    header.earthquake_name = s;
+    return;
+}
+
+string get_earthquake_name () {
+    return header.earthquake_name;
+}
+
+void set_latitude ( string s, earthquake & header ) {
+    header.latitude = s;
+    return;
+}
+
+string get_latitude () {
+    return header.latitude;
+} 
+
+void set_longitude ( string s, earthquake & header ) {
+    header.longitude = s;
+    return;
+}
+
+string get_longitude () {
+    return header.longitude;
+} 
+
+void set_depth ( string s, earthquake & header ) {
+    header.depth = s;
+    return;
+}
+
+string get_depth () {
+    return header.depth;
+}
+
+void set_magnitude_type_string ( string s, earthquake & header, ofstream & logfile ) {
+    header.magnitude_type_string = s;
+    check_magnitude_type ( header.magnitude_type_string, logfile );
+    return;
+}
+
+string get_magnitude_type_string () {
+    return header.magnitude_type_string;
+}
+
+void set_magnitude_size ( float s, earthquake & header, ofstream & logfile ) {
+    header.magnitude_size = s;
+    check_magnitude_size ( header.magnitude_size, logfile );
+    return;
+}
+
+float get_magnitude_size () {
+    return header.magnitude_size;
+}
+
+// Set and Get Functions For Entry Struct
+             
